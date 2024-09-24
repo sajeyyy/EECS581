@@ -17,15 +17,55 @@ last modified: 09/09/2024
 import random
 import os
 import time
-]
 
 # AI Object
 class AI:
     def __init__(self, name, board):
         self.name = name
-        self.board = board
+        self.board = board  # Directly using the board attributes, no need for separate `ships`, `hits`, or `misses` in AI
 
-    def aiRandomGuess():
+    def place_ships_randomly(self, ship_sizes):
+        for size in ship_sizes:
+            while True:
+                start_x = random.randint(0, self.board.size - 1)
+                start_y = random.randint(0, self.board.size - 1)
+                orientation = 'H' if random.randint(0, 1) == 0 else 'V'
+                ship = Ship(size, orientation, start_x, start_y)
+
+                if self.board.is_valid_position(ship):
+                    self.board.place_ship(ship)
+                    break  # Exit the loop once the ship is placed
+
+    def aiRandomGuess(self, player_board):
+        while True:
+            randRow = random.randint(0, player_board.size - 1)
+            randCol = random.randint(0, player_board.size - 1)
+
+            # Ensure the AI hasn't guessed this spot before on the player's board
+            if player_board.grid[randRow][randCol] not in ("X", "O"):
+                break
+
+        ship_sunk = False
+        if player_board.grid[randRow][randCol] == "S" or player_board.grid[randRow][randCol].isdigit():
+            if (randRow, randCol) in player_board.hit_count:
+                player_board.hit_count[(randRow, randCol)] += 1
+            else:
+                player_board.hit_count[(randRow, randCol)] = 1
+            player_board.grid[randRow][randCol] = "X"
+            player_board.hits.append((randRow, randCol))
+
+            # Check if a ship was hit and whether it is sunk
+            for ship in player_board.ships:
+                if (randRow, randCol) in ship.coordinates:
+                    if ship.is_sunk(player_board.hits):
+                        ship_sunk = True
+
+            return "Hit!", ship_sunk
+        else:
+            player_board.grid[randRow][randCol] = "O"
+            player_board.misses.append((randRow, randCol))
+            return "Miss!", ship_sunk
+
 
 
 
@@ -255,7 +295,7 @@ def getGamemode():
         getGamemode()
 
 def getDifficulty():
-    aiDifficulty = int(input("\nPlease Choose the AI's Difficulty \n1) Easy\n2) Medium\n3) Hard\n\nEnter your selection: "))
+    aiDifficulty = int(input("\nPlease Choose the AI's Difficulty: \n1) Easy\n2) Medium\n3) Hard\n\nEnter your selection: "))
 
     if(aiDifficulty == 1 or aiDifficulty == 2 or aiDifficulty == 3):
         return aiDifficulty
@@ -306,31 +346,39 @@ def setup_ships(player, num_ships):
 # Function not belonging to a class
 # Main game loop
 # Both players take turns playing the game. The game ends when one player's ships are all sunk.
-def play_game(player1, player2):
+def play_game(player1, player2, is_ai=False):
     while True:
         player1.take_turn(player2)
-        time.sleep(3)
         if player2.board.all_ships_sunk():
             print(f"{player1.name} wins!")
             break
-        time.sleep(4)
-        clear_screen()
 
-        print("Please switch players!") # Notify user to give computer to next player
-        time.sleep(5) # hold blank screen for 5 seconds for players to switch computer without one player seeing anothers data
-        clear_screen()
-
-        player2.take_turn(player1)
+        # Give player 1 time to see their shot result before switching
         time.sleep(3)
-        if player1.board.all_ships_sunk():
-            print(f"{player2.name} wins!")
-            break
-        time.sleep(4)
         clear_screen()
 
-        print("Please switch players!") # Notify user to give computer to next player
-        time.sleep(5) # hold blank screen for 5 seconds for players to switch computer without one player seeing anothers data
+        if is_ai:
+            print("AI's turn!")
+            result, ship_sunk = player2.aiRandomGuess(player1.board)  # Pass player1's board
+            print(f"AI fired and it was a {result}!")
+            if ship_sunk:
+                print("AI has sunk a ship!")
+            if player1.board.all_ships_sunk():
+                print("AI wins!")
+                break
+        else:
+            print("Please switch players!")
+            time.sleep(5)  # Pause to allow players to switch without rushing
+            clear_screen()
+            player2.take_turn(player1)
+            time.sleep(3)  # Allow Player 2 to see their shot result before clearing the screen
+            if player1.board.all_ships_sunk():
+                print(f"{player2.name} wins!")
+                break
+
         clear_screen()
+
+
 
 # Function not belonging to a class
 # Clear screen for cleaner experience and to delete previous players data from the screen to hide it from next player.
