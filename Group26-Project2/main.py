@@ -6,7 +6,7 @@ Authors: Kaitlyn Clements
          Lizzie Soltis
 Assignment: EECS 581 Project 1; Battleship
 Program: main.py
-Description: main file to execute code for Battleship game. 
+Description: main file to execute code for Battleship game.
 Inputs: Players.py, Board.py, Ship.py, User Input
 Outputs: Battleship Game, interactive and dependent on User Input
 Other Sources: ChatGPT
@@ -21,6 +21,8 @@ from Battleship import setup_ships
 from Battleship import play_game
 from Battleship import clear_screen
 from Battleship import validate_numships
+from Battleship import getGamemode
+from Battleship import getDifficulty
 
 # Import time module for delays
 import time
@@ -28,43 +30,50 @@ import time
 # Main function
 # Contains overall game flow
 def main():
+    # Initialize a board for each player
     board1 = Board()
     board2 = Board()
-    # Initialize a board for each player
 
-    player1 = Player("Player 1", board1)
-    player2 = Player("Player 2", board2)
-    # Initialize 2 players for the game
+    #Initialize board for AI annd User player
+    if(getGamemode() == 1):
+        aiDifficulty = getDifficulty()
+        player1 = Player("User", board1)
+        player2 = AI("AI", board2)
 
-    num_ships = validate_numships()
-    # validates the number of ships the players selcted
+    # Initialize 2 players for a 2-player game
+    elif(getGamemode() == 2):
+        player1 = Player("Player 1", board1)
+        player2 = Player("Player 2", board2)
 
-    setup_ships(player1, num_ships)
-    print("All of Player 1's ships are placed!")
-    time.sleep(5)
-    clear_screen()
-    # Let's player 1 setup their ships and then clears their data from the screen
+        num_ships = validate_numships()
+        # validates the number of ships the players selcted
 
-    print("Please switch players!")
-    time.sleep(5)
-    clear_screen()
-    # Clears data and lets players know to switch the computer for the next players turn
-    # Prevents users from seeing other's data
+        setup_ships(player1, num_ships)
+        print("All of Player 1's ships are placed!")
+        time.sleep(5)
+        clear_screen()
+        # Let's player 1 setup their ships and then clears their data from the screen
 
-    setup_ships(player2, num_ships)
-    print("All of Player 2's ships are placed!")
-    time.sleep(5)
-    clear_screen()
-    # Lets player 2 setup their ships and then clears their data from the screen
+        print("Please switch players!")
+        time.sleep(5)
+        clear_screen()
+        # Clears data and lets players know to switch the computer for the next players turn
+        # Prevents users from seeing other's data
 
-    print("Please switch players!")
-    time.sleep(5)
-    clear_screen()
-    # Clears data and lets players know to switch the computer for the next players turn
-    # Prevents users from seeing other's data
+        setup_ships(player2, num_ships)
+        print("All of Player 2's ships are placed!")
+        time.sleep(5)
+        clear_screen()
+        # Lets player 2 setup their ships and then clears their data from the screen
 
-    play_game(player1, player2)
-    # begins the game for player1 and player2
+        print("Please switch players!")
+        time.sleep(5)
+        clear_screen()
+        # Clears data and lets players know to switch the computer for the next players turn
+        # Prevents users from seeing other's data
+
+        play_game(player1, player2)
+        # begins the game for player1 and player
 
 
 if __name__ == "__main__":

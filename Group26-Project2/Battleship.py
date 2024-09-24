@@ -17,8 +17,19 @@ last modified: 09/09/2024
 import random
 import os
 import time
+]
 
-# Initializes a Player class/object. Each play has their own name and board. 
+# AI Object
+class AI:
+    def __init__(self, name, board):
+        self.name = name
+        self.board = board
+
+    def aiRandomGuess():
+
+
+
+# Initializes a Player class/object. Each play has their own name and board.
 class Player:
     def __init__(self, name, board):
         self.name = name
@@ -38,7 +49,7 @@ class Player:
 
         # Display opponent's board but hide the ships from the view
         print("\nOpponent's board: ")
-        opponent.board.display(show_ships=False)  
+        opponent.board.display(show_ships=False)
 
         # Get coordinates for firing, make sure valid cooardinates
         while True:
@@ -55,12 +66,12 @@ class Player:
             print("Invalid coordinates, try again.")
             # Ensure target hasn't been fired at before
 
-        # Fire at opponent's board. Print whether the shot was a hit or miss. If a ship is sunk, notify the player. 
+        # Fire at opponent's board. Print whether the shot was a hit or miss. If a ship is sunk, notify the player.
         result, ship_sunk = opponent.board.receive_fire(x, y)
         print(f"\n{self.name} fired at {target}: {result}")
         if ship_sunk:
             print(f"{self.name} has sunk a ship!")
-    
+
     # Function of Player
     # Display how many times each ship has been hit; Calculated by comparing coordinates with hits on the board
     def display_hits(self):
@@ -130,7 +141,7 @@ class Board:
     # Handle an incoming shot at (x, y)
     def receive_fire(self, x, y):
         ship_sunk = False
-        if self.grid[x][y] == "S" or self.grid[x][y].isdigit(): 
+        if self.grid[x][y] == "S" or self.grid[x][y].isdigit():
             if (x,y) in self.hit_count: #if hit, increment hit counter for spot
                 self.hit_count[(x,y)] += 1
             else:
@@ -138,9 +149,9 @@ class Board:
             self.grid[x][y] = "X"
             self.hits.append((x, y))
             for ship in self.ships:
-                if (x, y) in ship.coordinates: 
+                if (x, y) in ship.coordinates:
                     if ship.is_sunk(self.hits):
-                        ship_sunk = True 
+                        ship_sunk = True
             return "Hit!", ship_sunk
         else:
             self.grid[x][y] = "O"
@@ -158,15 +169,8 @@ class Board:
                 return False
         return True
 
-# Function not belonging to a class
-# Converts all user input into board incdices
-def input_to_index(input_str):
-    column = ord(input_str[0].upper()) - ord('A')
-    row = int(input_str[1:]) - 1
-    return row, column
-
 # Initializes a Ship class/object
-# Each Ship has a size, orientation, starting coordinates (x and y), and remaining coordinates 
+# Each Ship has a size, orientation, starting coordinates (x and y), and remaining coordinates
 class Ship:
     def __init__(self, size, orientation, start_x, start_y):
         self.size = size
@@ -174,7 +178,7 @@ class Ship:
         self.start_x = start_x
         self.start_y = start_y
         self.coordinates = self.generate_coordinates()
-    
+
     # Function of a Ship
     # Generate the coordinates of the ship based on its size and orientation (horizontal or vertical)
     def generate_coordinates(self):
@@ -186,14 +190,23 @@ class Ship:
             for i in range(self.size):
                 coordinates.append((self.start_x + i, self.start_y))
         return coordinates
-        
+
     # Function of a Ship
     # Check is all of a ship's coordinates have been marked as a hit, if so then the ship has been sunk
     def is_sunk(self, hits):
         return all(coord in hits for coord in self.coordinates)
 
+
+
+# Function not belonging to a class
+# Converts all user input into board incdices
+def input_to_index(input_str):
+    column = ord(input_str[0].upper()) - ord('A')
+    row = int(input_str[1:]) - 1
+    return row, column
+
 # Not a function belonging to a class
-# Validate the input for ship orientation (H or V)   
+# Validate the input for ship orientation (H or V)
 def validate_orientation():
     while True:
         ship_orientation = input("Enter orientation (H for horizontal, V for vertical): ").strip().upper()
@@ -211,13 +224,13 @@ def validate_position():
             print("Invalid position! Position must be a letter (A-J) followed by a number (1-10).")
             continue
             # Validates start position
-        
+
         column_letter = start_position[0]
         if column_letter < 'A' or column_letter > 'J':
             print("Invalid position! The letter must be between A and J.")
             continue
             # Validates the column letter is between A-J
-        
+
         try:
             row_number = int(start_position[1:])
             if row_number < 1 or row_number > 10:
@@ -227,10 +240,29 @@ def validate_position():
         except ValueError:
             print("Invalid position! The number must be a valid integer.")
             continue
-            # Raise an error if invalid coordinates are provided. 
-        
-        return start_position # Starts the process over again 
-    
+            # Raise an error if invalid coordinates are provided.
+
+        return start_position # Starts the process over again
+
+#Asks the user to select their desired gamemode, and returns the option as an int
+def getGamemode():
+    gameMode = int(input("\nPlease Choose the Gamemode: \n1) 1-Player vs. AI\n2) 2-Player Pass-And-Play\n\nEnter your selection: "))
+
+    if(gameMode == 1 or gameMode == 2):
+        return gameMode
+    else:
+        print("Invalid Option, Please Try Again!")
+        getGamemode()
+
+def getDifficulty():
+    aiDifficulty = int(input("\nPlease Choose the AI's Difficulty \n1) Easy\n2) Medium\n3) Hard\n\nEnter your selection: "))
+
+    if(aiDifficulty == 1 or aiDifficulty == 2 or aiDifficulty == 3):
+        return aiDifficulty
+    else:
+        print("Invalid Option, Please Try Again!")
+        getDifficulty()
+
 # Not a function belonging to a class
 # Validate the number of ships each player will have, ensure input is between 1-5
 def validate_numships():
@@ -246,7 +278,7 @@ def validate_numships():
 # User is notified to place their ships by providing orientation and position
 def setup_ships(player, num_ships):
     print(f"{player.name}'s turn to place ships!")
-    
+
     print(f"{player.name}'s current board:")
     player.board.display()
 
@@ -254,7 +286,7 @@ def setup_ships(player, num_ships):
 
     # Iterate through ship_sizes for valid input and placement without overlapping
     # If a valid position is found, the ship is placed abd the loop continues
-    # Else the player is asked to try again 
+    # Else the player is asked to try again
     for size in ship_sizes:
         while True:
             ship_orientation = validate_orientation()
@@ -265,7 +297,7 @@ def setup_ships(player, num_ships):
                 player.board.place_ship(ship)
                 print(f"{player.name} placed a ship of size {size}.")
                 print(f"{player.name}'s board: ")
-                player.board.display() 
+                player.board.display()
                 break
             else:
                 print("Invalid position! Please choose another location")
@@ -273,7 +305,7 @@ def setup_ships(player, num_ships):
 
 # Function not belonging to a class
 # Main game loop
-# Both players take turns playing the game. The game ends when one player's ships are all sunk. 
+# Both players take turns playing the game. The game ends when one player's ships are all sunk.
 def play_game(player1, player2):
     while True:
         player1.take_turn(player2)
@@ -301,6 +333,6 @@ def play_game(player1, player2):
         clear_screen()
 
 # Function not belonging to a class
-# Clear screen for cleaner experience and to delete previous players data from the screen to hide it from next player. 
+# Clear screen for cleaner experience and to delete previous players data from the screen to hide it from next player.
 def clear_screen():
    os.system('cls' if os.name == 'nt' else 'clear')
