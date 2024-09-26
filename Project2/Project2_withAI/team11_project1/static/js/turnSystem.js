@@ -23,6 +23,8 @@ function nextTurn() {
         document.getElementById("p2opponent").style.display = "grid";
 
         document.getElementById("game-state").innerText = "Player 2's Turn";//top of page now says it's p2's turn
+        // Update the special shot button for Player 2
+        updateSpecialShotButton(2);
     } else {//change to p1's turn
         turn = 1;//turn tracker to p1
         document.getElementById("p1self").style.display = "grid";//unhide p1's boards
@@ -32,6 +34,8 @@ function nextTurn() {
         document.getElementById("p2opponent").style.display = "none";
 
         document.getElementById("game-state").innerText = "Player 1's Turn";//top of page now says its p1's turn
+        // Update the special shot button for Player 2
+        updateSpecialShotButton(1);
     }
 
     return turn

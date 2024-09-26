@@ -23,6 +23,10 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentShipIndex = 0;
     let p2PlaceShips = false;
 
+    // Special shot initial states for each player
+    let p1SpecialShotAvailable = true;
+    let p2SpecialShotAvailable = true;
+
     // Accessing DOM elements
     const modeSelectionDiv = document.getElementById('mode-selection');
     const aiDifficultyDiv = document.getElementById('ai-difficulty');
@@ -49,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const p2ShipsLeftSpan = document.getElementById('p2-ships-left');
     const opponentName = document.getElementById('opponent-name');
 
+    const specialShotButton = document.getElementById('special-shot-button');
     const endTurnButton = document.getElementById('end-turn');
     const passScreen = document.getElementById('pass-screen');
     const passButton = document.getElementById('pass');
@@ -138,6 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
         gameStateLabel.innerText = "Ship Count";
         console.log("Started Ship Placement");
         initializeShipPlacement(); // Initialize ship placement based on mode
+        // Initialize the special shot button for Player 1
     });
 
     // Function to initialize ship placement
@@ -378,10 +384,92 @@ document.addEventListener("DOMContentLoaded", function () {
             cell.style.cursor = "pointer";
         });
     }
+    // Attach event listener to the special shot button
+    specialShotButton.addEventListener('click', function() {
+        const currentPlayer = getCurrentPlayer(); // Function that returns the current player (1 or 2)
+    
+        if ((currentPlayer === 1 && p1SpecialShotAvailable) || (currentPlayer === 2 && p2SpecialShotAvailable)) {
+            let validInput = false;
+        
+            // Loop until valid input is received
+            while (!validInput) {
+                const centerCoord = prompt("Enter the center coordinate of your 3x3 shot in format 'row,col' (e.g., 4,4):");
 
+                if (centerCoord) {
+                    const [centerRow, centerCol] = centerCoord.split(',').map(Number);
+
+                    // Validate the 3x3 shot coordinates
+                    if (validate3x3Shot(centerRow, centerCol)) {
+                        validInput = true; // Exit the loop since input is valid
+
+                        // Identify the target player and attacker ID
+                        const targetPlayer = currentPlayer === 1 ? player2 : player1;
+                        const attackerId = currentPlayer === 1 ? 'player1' : 'player2';
+
+                        // Fire a 3x3 shot using the existing processAttack function
+                        fire3x3Shot(centerRow, centerCol, targetPlayer, attackerId);
+
+                        // Mark the special shot as used
+                        if (currentPlayer === 1) p1SpecialShotAvailable = false;
+                        if (currentPlayer === 2) p2SpecialShotAvailable = false;
+
+                        // Update the button display to reflect the change
+                        updateSpecialShotButton(currentPlayer);
+                    } else {
+                        alert("Invalid coordinates, please try again.");
+                    }
+                }
+            }
+        } else {
+            alert("You have already used your special shot or it is unavailable.");
+        }
+    });
+    // Update the special shot button display
+    function updateSpecialShotButton(player) {
+        if ((player === 1 && p1SpecialShotAvailable) || (player === 2 && p2SpecialShotAvailable)) {
+            specialShotButton.classList.remove('disabled');
+            specialShotButton.classList.add('enabled');
+            specialShotButton.disabled = false;  // Enable the button
+            specialShotButton.style.display = "block"; // Ensure it's visible
+        } else {
+            specialShotButton.classList.remove('enabled');
+            specialShotButton.classList.add('disabled');
+            specialShotButton.disabled = true;   // Disable the button
+            specialShotButton.style.display = "block"; // Ensure it's still visible but greyed out
+        }
+    }
+    function validate3x3Shot(centerRow, centerCol) {
+        for (let i = centerRow - 1; i <= centerRow + 1; i++) {
+            for (let j = centerCol - 1; j <= centerCol + 1; j++) {
+                if (i < 0 || i >= 10 || j < 0 || j >= 10) { // 10x10 grid
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Fire a 3x3 shot
+    function fire3x3Shot(centerRow, centerCol, targetPlayer, attackerId) {
+        for (let i = centerRow - 1; i <= centerRow + 1; i++) {
+            for (let j = centerCol - 1; j <= centerCol + 1; j++) {
+                // Ensure the cell coordinates are valid before processing the attack
+                if (i >= 0 && i < 10 && j >= 0 && j < 10) { // Assuming a 10x10 grid
+                    const targetId = targetPlayer.id === 1 ? 'p1opponent' : 'p2opponent'; // Adjust based on player
+                    const cell = document.getElementById(targetId).querySelector(`.cell[data-row="${i}"][data-col="${j}"]`);
+                    if (cell) {
+                        processAttack(targetPlayer, cell, targetId, attackerId);
+                    } else {
+                        console.error(`Cell not found: row ${i}, col ${j}`);
+                    }
+                }
+            }
+        }
+    }
     // Event Listener to start the attack phase
     startAttackButton.addEventListener("click", function () {
         isAttackPhase = true;
+        updateSpecialShotButton(1);
         startAttackPhase();
     });
 
@@ -479,6 +567,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Ensure interactivity
                 enableBoardInteractivity(document.getElementById("p1opponent"));
                 disableBoardInteractivity(document.getElementById("p2self"));
+                // Update the special shot button for Player 2
+                updateSpecialShotButton(2);
             } else {
                 // Switching back to Player 1's turn
                 turn = 1;
@@ -499,6 +589,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Ensure interactivity
                 enableBoardInteractivity(document.getElementById("p2opponent"));
                 disableBoardInteractivity(document.getElementById("p1self"));
+                // Update the special shot button for Player 1
+                updateSpecialShotButton(1);
             }
 
             // Re-attach event listeners to the active opponent's board
