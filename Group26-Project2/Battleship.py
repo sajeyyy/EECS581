@@ -147,13 +147,8 @@ class Player:
         for ship_coords, hit_count in hit_count_by_ship.items():
             print(f"{ship_coords}: {hit_count} hit(s)")
 
-    # Function to activate AC130 and let the player choose between row or column
     def activate_ac130(self, opponent_board):
-        print("Hostile AC-130 inbound!")
-        time.sleep(5)  # Pause for 5 seconds to display the message
-
-        plane_animation_with_payload()  # Display the plane animation after the delay
-
+        # Ask the player if they want to hit a row or column
         choice = input("AC130 activated! Do you want to target a row or a column? (R/C): ").upper()
 
         if choice == 'R':  # Target row
@@ -166,7 +161,7 @@ class Player:
                 else:
                     opponent_board.grid[row][col] = "O"
         elif choice == 'C':  # Target column
-            col = int(input("Enter the column letter (A-J): ").upper()) - ord('A')
+            col = ord(input("Enter the column letter (A-J): ").upper()) - ord('A')  # Fix here
             for row in range(opponent_board.size):
                 if opponent_board.grid[row][col] == "S":
                     opponent_board.grid[row][col] = "X"
@@ -176,6 +171,7 @@ class Player:
                     opponent_board.grid[row][col] = "O"
 
         print("AC130 strike completed!")
+
 
 
 
