@@ -19,12 +19,13 @@ def main():
     board1 = Board()
     board2 = Board()
 
-    gameMode = getGamemode() # Asks the user for the desired gamemode
-    num_ships = validate_numships() # Validates the number of ships the players selected
+    gameMode = getGamemode()  # Asks the user for the desired gamemode
 
     # Initialize board for AI and User player
     if gameMode == 1:
-        aiDifficulty = getDifficulty()
+        aiDifficulty = getDifficulty()  # User selects AI difficulty
+        num_ships = validate_numships()  # Validates the number of ships the players selected
+
         player1 = Player("User", board1)
         player2 = AI("AI", board2)  # AI instance properly used
 
@@ -32,10 +33,11 @@ def main():
         player2.place_ships_randomly(range(1, num_ships + 1))  # AI places its ships randomly
 
         print("\nThe game is starting! You are playing against the AI.")
-        play_game(player1, player2, is_ai=True)  # Start the game against AI
+        play_game(player1, player2, is_ai=True, aiDifficulty=aiDifficulty)  # Pass aiDifficulty to play_game
 
     # Initialize 2 players for a 2-player game
     elif gameMode == 2:
+        num_ships = validate_numships()  # Validates the number of ships the players selected
         player1 = Player("Player 1", board1)
         player2 = Player("Player 2", board2)
 
