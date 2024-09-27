@@ -4,6 +4,12 @@ Authors: Kaitlyn Clements
          Sam Muehlebach
          Aaditi Chinawalker
          Lizzie Soltis
+
+Collaborators: Saje Cowell
+               Spencer Sliffe
+               Jeff Burns
+               Charlie Gillund
+
 Assignment: EECS 581 Project 1; Battleship
 Program: Battleship.pyBattleship file to identify different classes/objects of the game
 Inputs: Players.py, Board.py, Ship.py, User Input
@@ -22,7 +28,12 @@ import time
 class AI:
     def __init__(self, name, board):
         self.name = name
-        self.board = board  # Directly using the board attributes, no need for separate `ships`, `hits`, or `misses` in AI
+        self.board = board
+        self.hunt_mode = True  # Start in "hunt" mode to randomly shoot
+        self.target_mode = False  # Switch to "target" mode when a ship is hit
+        self.target_list = []  # List of cells to target around a hit ship
+        self.last_hit = None  # Track the last hit cell
+        self.direction_queue = []  # Queue to handle directions
 
     def place_ships_randomly(self, ship_sizes):
         for size in ship_sizes:
@@ -34,21 +45,80 @@ class AI:
 
                 if self.board.is_valid_position(ship):
                     self.board.place_ship(ship)
-                    break  # Exit the loop once the ship is placed
+                    break
 
-    def aiRandomGuess(self, player_board):
-        while True:
-            randRow = random.randint(0, player_board.size - 1)
-            randCol = random.randint(0, player_board.size - 1)
+    # Function for the medium mode AI
+    def medModeAI(self, player_board):
+        if self.hunt_mode:
+            print("AI is in hunt mode...")
+            while True:
+                randRow = random.randint(0, player_board.size - 1)
+                randCol = random.randint(0, player_board.size - 1)
 
             # Ensure the AI hasn't guessed this spot before on the player's board
             if player_board.grid[randRow][randCol] not in ("\033[31mX\033[0m", "O"):
                 break
 
+            print(f"AI randomly shoots at ({randRow + 1}, {chr(randCol + 65)})")
+            hit_result, ship_sunk = self.process_shot(player_board, randRow, randCol)
+
+            if hit_result == "Hit!":
+                print(f"AI hit at ({randRow + 1}, {chr(randCol + 65)})! Switching to target mode.")
+                self.hunt_mode = False
+                self.target_mode = True
+                self.last_hit = (randRow, randCol)
+                self.direction_queue = self.populate_target_list(randRow, randCol)
+
+            return hit_result, ship_sunk
+
+        elif self.target_mode:
+            print("AI is in target mode...")
+            while self.direction_queue:
+                # Get the next direction from the queue
+                direction = self.direction_queue[0]
+                targetRow, targetCol = self.get_next_target(self.last_hit[0], self.last_hit[1], direction)
+
+                print(f"AI targets direction {direction} resulting in cell ({targetRow + 1}, {chr(targetCol + 65)})")
+
+                # Check if this cell is valid
+                if (0 <= targetRow < player_board.size and 0 <= targetCol < player_board.size
+                    and player_board.grid[targetRow][targetCol] not in ("X", "O")):
+
+                    hit_result, ship_sunk = self.process_shot(player_board, targetRow, targetCol)
+
+                    if hit_result == "Hit!":
+                        print(f"AI hit again at ({targetRow + 1}, {chr(targetCol + 65)})! Continuing in this direction.")
+                        self.last_hit = (targetRow, targetCol)
+                        if not ship_sunk:
+                            return hit_result, ship_sunk
+                        else:
+                            print("AI has sunk a ship!")
+                            self.hunt_mode = True
+                            self.target_mode = False
+                            self.direction_queue.clear()
+                            return hit_result, ship_sunk
+
+                    # If it misses, remove the current direction and try the next one
+                    print(f"AI missed at ({targetRow + 1}, {chr(targetCol + 65)}). Trying next direction.")
+                    self.direction_queue.pop(0)  # Remove current direction and try next
+
+                else:
+                    # Invalid cell or already hit/missed; remove the direction and try next
+                    print(f"Invalid target or already hit at ({targetRow + 1}, {chr(targetCol + 65)}). Trying next direction.")
+                    self.direction_queue.pop(0)
+
+            # If all directions are exhausted, go back to hunt mode
+            print("AI has exhausted all target directions. Returning to hunt mode.")
+            self.hunt_mode = True
+            self.target_mode = False
+            return "Miss!", False
+
+#Handles the logic of processing a shot at the given row and col
+    def process_shot(self, player_board, row, col):
         ship_sunk = False
-        if player_board.grid[randRow][randCol] == "S" or player_board.grid[randRow][randCol].isdigit():
-            if (randRow, randCol) in player_board.hit_count:
-                player_board.hit_count[(randRow, randCol)] += 1
+        if player_board.grid[row][col] == "S" or player_board.grid[row][col].isdigit():
+            if (row, col) in player_board.hit_count:
+                player_board.hit_count[(row, col)] += 1
             else:
                 player_board.hit_count[(randRow, randCol)] = 1
             player_board.grid[randRow][randCol] = "\033[31mX\033[0m"
@@ -56,17 +126,25 @@ class AI:
 
             # Check if a ship was hit and whether it is sunk
             for ship in player_board.ships:
-                if (randRow, randCol) in ship.coordinates:
+                if (row, col) in ship.coordinates:
                     if ship.is_sunk(player_board.hits):
                         ship_sunk = True
+                        print(f"Ship sunk at ({row + 1}, {chr(col + 65)})!")
 
             return "Hit!", ship_sunk
         else:
-            player_board.grid[randRow][randCol] = "O"
-            player_board.misses.append((randRow, randCol))
+            player_board.grid[row][col] = "O"
+            player_board.misses.append((row, col))
             return "Miss!", ship_sunk
 
 
+    def populate_target_list(self, row, col):
+        #Populate list of directions to target around the initial hit in the order of Up, Down, Left, Right
+        return [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    def get_next_target(self, row, col, direction):
+        dr, dc = direction
+        return row + dr, col + dc
 
 
 # Initializes a Player class/object. Each play has their own name and board.
@@ -155,7 +233,7 @@ class Player:
             row = int(input("Enter the row number (1-10): ")) - 1
             # Show AC-130 inbound message after the player makes a choice
             print("Hostile AC-130 inbound!")
-            time.sleep(5)
+            time.sleep(3)
             plane_animation_with_payload()  # Play the animation
 
             for col in range(opponent_board.size):
@@ -170,7 +248,7 @@ class Player:
             col = ord(input("Enter the column letter (A-J): ").upper()) - ord('A')
             # Show AC-130 inbound message after the player makes a choice
             print("Hostile AC-130 inbound!")
-            time.sleep(5)
+            time.sleep(3)
             plane_animation_with_payload()  # Play the animation
 
             for row in range(opponent_board.size):
@@ -181,10 +259,7 @@ class Player:
                 else:
                     opponent_board.grid[row][col] = "O"
 
-        print("AC130 strike completed!")
-
-
-
+        print("AC130 Strike Completed!")
 
 # Initializes a Board class/object
 # Each Board has a grid, ships, hits, misses, and hit count
@@ -366,7 +441,7 @@ def getDifficulty():
 # Validate the number of ships each player will have, ensure input is between 1-5
 def validate_numships():
     while True:
-        ship_num = int(input("Enter the number of ships each player will get (minimum of 1, maximum of 5): "))
+        ship_num = int(input("\nEnter the number of ships each player will get (minimum of 1, maximum of 5): "))
         if ship_num in [1,2,3,4,5]:
             return ship_num
         else:
@@ -450,20 +525,20 @@ def plane_animation_with_payload():
         ]
     ]
 
-    # Clear the screen and display the plane flying and payload dropping 
+    # Clear the screen and display the plane flying and payload dropping
     for frame in frames:
         clear_screen()
         for line in frame:
-            print(line)  
-        time.sleep(0.67)  # Pause to create a frame 
+            print(line)
+        time.sleep(0.67)  # Pause to create a frame
 
-    clear_screen()  # Clear the screen 
+    clear_screen()  # Clear the screen
 
 
 # Function not belonging to a class
 # Main game loop
 # Both players take turns playing the game. The game ends when one player's ships are all sunk.
-def play_game(player1, player2, is_ai=False):
+def play_game(player1, player2, is_ai=False, aiDifficulty=1):
     while True:
         player1.take_turn(player2)
         if player2.board.all_ships_sunk():
@@ -476,7 +551,14 @@ def play_game(player1, player2, is_ai=False):
 
         if is_ai:
             print("AI's turn!")
-            result, ship_sunk = player2.aiRandomGuess(player1.board)  # Pass player1's board
+            # Call the AI method based on selected difficulty
+            if aiDifficulty == 1:
+                result, ship_sunk = player2.easyModeAI(player1.board)
+            elif aiDifficulty == 2:
+                result, ship_sunk = player2.medModeAI(player1.board)
+            elif aiDifficulty == 3:
+                result, ship_sunk = player2.hardModeAI(player1.board)  # Assuming a hardModeAI method exists
+
             print(f"AI fired and it was a {result}!")
             if ship_sunk:
                 print("AI has sunk a ship!")
@@ -497,8 +579,6 @@ def play_game(player1, player2, is_ai=False):
                 break
 
         clear_screen()
-
-
 
 # Function not belonging to a class
 # Clear screen for cleaner experience and to delete previous players data from the screen to hide it from next player.
