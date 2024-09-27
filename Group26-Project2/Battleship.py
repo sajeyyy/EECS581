@@ -153,6 +153,11 @@ class Player:
 
         if choice == 'R':  # Target row
             row = int(input("Enter the row number (1-10): ")) - 1
+            # Show AC-130 inbound message after the player makes a choice
+            print("Hostile AC-130 inbound!")
+            time.sleep(5)
+            plane_animation_with_payload()  # Play the animation
+
             for col in range(opponent_board.size):
                 if opponent_board.grid[row][col] == "S":
                     opponent_board.grid[row][col] = "X"
@@ -160,8 +165,14 @@ class Player:
                     print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
                 else:
                     opponent_board.grid[row][col] = "O"
+
         elif choice == 'C':  # Target column
-            col = ord(input("Enter the column letter (A-J): ").upper()) - ord('A')  # Fix here
+            col = ord(input("Enter the column letter (A-J): ").upper()) - ord('A')
+            # Show AC-130 inbound message after the player makes a choice
+            print("Hostile AC-130 inbound!")
+            time.sleep(5)
+            plane_animation_with_payload()  # Play the animation
+
             for row in range(opponent_board.size):
                 if opponent_board.grid[row][col] == "S":
                     opponent_board.grid[row][col] = "X"
@@ -416,38 +427,37 @@ def setup_ships(player, num_ships):
         print("AC130 strike completed!")
 
 def plane_animation_with_payload():
-    # Define the three frames for the plane with payload dropping
     frames = [
         [
-            "      __|__      ",
-            "-----o--(_)--o----",
-            "        | |       ",
-            "         O        "
+            "      __|__         ",
+            "-----o--(_)--o-----  ",
+            "        | |         ",
+            "         O          "
         ],
         [
-            "         __|__         ",
-            "   ----o--(_)--o----   ",
-            "            | |        ",
-            "            O          ",
-            "           |           "
+            "         __|__            ",
+            "    ----o--(_)--o-----     ",
+            "            | |           ",
+            "            O             ",
+            "           |              "
         ],
         [
-            "            __|__            ",
-            "      ----o--(_)--o---       ",
-            "               | |          ",
-            "               O            ",
-            "              /|\\          "
+            "            __|__                ",
+            "       ----o--(_)--o------        ",
+            "               | |               ",
+            "               O                 ",
+            "              /|\\                "
         ]
     ]
 
-    # Clear the screen and display the plane flying and payload dropping in 3 frames
+    # Clear the screen and display the plane flying and payload dropping 
     for frame in frames:
         clear_screen()
         for line in frame:
-            print(line)  # Print each line of the current frame
-        time.sleep(0.67)  # Pause to create a frame effect for approximately 2 seconds total
+            print(line)  
+        time.sleep(0.67)  # Pause to create a frame 
 
-    clear_screen()  # Clear the screen after the animation finishes
+    clear_screen()  # Clear the screen 
 
 
 # Function not belonging to a class
