@@ -74,6 +74,8 @@ class Player:
     def __init__(self, name, board):
         self.name = name
         self.board = board
+        self.consecutive_hits = 0  # New variable to track consecutive hits
+        self.ac130_available = False  # New flag for AC130 score streak
 
     # Function of a Player
     # Allow player to take a turn by firing at opponent's board
@@ -92,6 +94,15 @@ class Player:
         opponent.board.display(show_ships=False)
 
         # Get coordinates for firing, make sure valid cooardinates
+        # If AC130 is available, allow the player to choose whether to use it or not
+        if self.ac130_available:
+            use_ac130 = input("AC130 score streak available! Do you want to use it? (yes/no): ").lower()
+            if use_ac130 == 'yes':
+                self.activate_ac130(opponent.board)
+                self.ac130_available = False  # Reset after use
+                return  # Skip normal turn if AC130 is used
+
+        # Normal turn logic
         while True:
             target = input("Enter target coordinates (e.g., A5): ").upper()
             if len(target) >= 2 and target[0] in "ABCDEFGHIJ" and target[1:].isdigit():
@@ -112,6 +123,15 @@ class Player:
         if ship_sunk:
             print(f"{self.name} has sunk a ship!")
 
+        # Update consecutive hits and check for AC130 score streak activation
+        if result == "Hit!":
+            self.consecutive_hits += 1
+            if self.consecutive_hits == 3:
+                self.ac130_available = True  # AC130 is available but doesn't need to be used immediately
+                print(f"AC130 score streak activated for {self.name}!")
+        else:
+            self.consecutive_hits = 0  # Reset on miss
+
     # Function of Player
     # Display how many times each ship has been hit; Calculated by comparing coordinates with hits on the board
     def display_hits(self):
@@ -126,6 +146,38 @@ class Player:
         # Print hit details for each ship
         for ship_coords, hit_count in hit_count_by_ship.items():
             print(f"{ship_coords}: {hit_count} hit(s)")
+
+    # Function to activate AC130 and let the player choose between row or column
+    def activate_ac130(self, opponent_board):
+        print("Hostile AC-130 inbound!")
+        time.sleep(5)  # Pause for 5 seconds to display the message
+
+        plane_animation_with_payload()  # Display the plane animation after the delay
+
+        choice = input("AC130 activated! Do you want to target a row or a column? (R/C): ").upper()
+
+        if choice == 'R':  # Target row
+            row = int(input("Enter the row number (1-10): ")) - 1
+            for col in range(opponent_board.size):
+                if opponent_board.grid[row][col] == "S":
+                    opponent_board.grid[row][col] = "X"
+                    opponent_board.hits.append((row, col))
+                    print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
+                else:
+                    opponent_board.grid[row][col] = "O"
+        elif choice == 'C':  # Target column
+            col = int(input("Enter the column letter (A-J): ").upper()) - ord('A')
+            for row in range(opponent_board.size):
+                if opponent_board.grid[row][col] == "S":
+                    opponent_board.grid[row][col] = "X"
+                    opponent_board.hits.append((row, col))
+                    print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
+                else:
+                    opponent_board.grid[row][col] = "O"
+
+        print("AC130 strike completed!")
+
+
 
 # Initializes a Board class/object
 # Each Board has a grid, ships, hits, misses, and hit count
@@ -342,6 +394,65 @@ def setup_ships(player, num_ships):
             else:
                 print("Invalid position! Please choose another location")
 
+    def activate_ac130(self, opponent_board):
+        # Ask the player if they want to hit a row or column
+        choice = input("AC130 activated! Do you want to target a row or a column? (R/C): ").upper()
+
+        if choice == 'R':  # Target row
+            row = int(input("Enter the row number (1-10): ")) - 1
+            for col in range(opponent_board.size):
+                if opponent_board.grid[row][col] == "S":
+                    opponent_board.grid[row][col] = "X"
+                    opponent_board.hits.append((row, col))
+                    print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
+                else:
+                    opponent_board.grid[row][col] = "O"
+        elif choice == 'C':  # Target column
+            col = int(input("Enter the column letter (A-J): ").upper()) - ord('A')
+            for row in range(opponent_board.size):
+                if opponent_board.grid[row][col] == "S":
+                    opponent_board.grid[row][col] = "X"
+                    opponent_board.hits.append((row, col))
+                    print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
+                else:
+                    opponent_board.grid[row][col] = "O"
+
+        print("AC130 strike completed!")
+
+def plane_animation_with_payload():
+    # Define the three frames for the plane with payload dropping
+    frames = [
+        [
+            "      __|__      ",
+            "-----o--(_)--o----",
+            "        | |       ",
+            "         O        "
+        ],
+        [
+            "         __|__         ",
+            "   ----o--(_)--o----   ",
+            "            | |        ",
+            "            O          ",
+            "           |           "
+        ],
+        [
+            "            __|__            ",
+            "      ----o--(_)--o---       ",
+            "               | |          ",
+            "               O            ",
+            "              /|\\          "
+        ]
+    ]
+
+    # Clear the screen and display the plane flying and payload dropping in 3 frames
+    for frame in frames:
+        clear_screen()
+        for line in frame:
+            print(line)  # Print each line of the current frame
+        time.sleep(0.67)  # Pause to create a frame effect for approximately 2 seconds total
+
+    clear_screen()  # Clear the screen after the animation finishes
+
 
 # Function not belonging to a class
 # Main game loop
@@ -372,6 +483,9 @@ def play_game(player1, player2, is_ai=False):
             clear_screen()
             player2.take_turn(player1)
             time.sleep(3)  # Allow Player 2 to see their shot result before clearing the screen
+            clear_screen()
+            print("Please switch players!")
+            time.sleep(5)  # Pause to allow players to switch without rushing
             if player1.board.all_ships_sunk():
                 print(f"{player2.name} wins!")
                 break
