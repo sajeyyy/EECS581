@@ -42,7 +42,7 @@ class AI:
             randCol = random.randint(0, player_board.size - 1)
 
             # Ensure the AI hasn't guessed this spot before on the player's board
-            if player_board.grid[randRow][randCol] not in ("X", "O"):
+            if player_board.grid[randRow][randCol] not in ("\033[31mX\033[0m", "O"):
                 break
 
         ship_sunk = False
@@ -51,7 +51,7 @@ class AI:
                 player_board.hit_count[(randRow, randCol)] += 1
             else:
                 player_board.hit_count[(randRow, randCol)] = 1
-            player_board.grid[randRow][randCol] = "X"
+            player_board.grid[randRow][randCol] = "\033[31mX\033[0m"
             player_board.hits.append((randRow, randCol))
 
             # Check if a ship was hit and whether it is sunk
@@ -160,7 +160,7 @@ class Player:
 
             for col in range(opponent_board.size):
                 if opponent_board.grid[row][col] == "S":
-                    opponent_board.grid[row][col] = "X"
+                    opponent_board.grid[row][col] = "\033[31mX\033[0m"
                     opponent_board.hits.append((row, col))
                     print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
                 else:
@@ -175,7 +175,7 @@ class Player:
 
             for row in range(opponent_board.size):
                 if opponent_board.grid[row][col] == "S":
-                    opponent_board.grid[row][col] = "X"
+                    opponent_board.grid[row][col] = "\033[31mX\033[0m"
                     opponent_board.hits.append((row, col))
                     print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
                 else:
@@ -191,7 +191,7 @@ class Player:
 class Board:
     def __init__(self, size=10):
         self.size = size
-        self.grid = [["~"] * size for _ in range(size)]
+        self.grid = [["\033[34m~\033[0m"] * size for _ in range(size)]
         self.ships = []
         self.hits = []
         self.misses = []
@@ -206,9 +206,9 @@ class Board:
             row = []
             for j in range(self.size):
                 if not show_ships and self.grid[i][j] == "S":
-                    row.append("~") # Hide ships if show_ships is False
-                elif self.grid[i][j] == "X" and (i,j) in self.hit_count:
-                    row.append("X") # Always display X when a ship has been hit
+                    row.append("\033[34m~\033[0m") # Hide ships if show_ships is False
+                elif self.grid[i][j] == "\033[31mX\033[0m" and (i,j) in self.hit_count:
+                    row.append("\033[31mX\033[0m") # Always display X when a ship has been hit
                 else:
                     row.append(self.grid[i][j]) # Show the current state of the cell
             print(f"{i + 1:2} " + " ".join(row))
@@ -245,7 +245,7 @@ class Board:
                 self.hit_count[(x,y)] += 1
             else:
                 self.hit_count[(x,y)] = 1
-            self.grid[x][y] = "X"
+            self.grid[x][y] = "\033[31mX\033[0m"
             self.hits.append((x, y))
             for ship in self.ships:
                 if (x, y) in ship.coordinates:
@@ -409,7 +409,7 @@ def setup_ships(player, num_ships):
             row = int(input("Enter the row number (1-10): ")) - 1
             for col in range(opponent_board.size):
                 if opponent_board.grid[row][col] == "S":
-                    opponent_board.grid[row][col] = "X"
+                    opponent_board.grid[row][col] = "\033[31mX\033[0m"
                     opponent_board.hits.append((row, col))
                     print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
                 else:
@@ -418,7 +418,7 @@ def setup_ships(player, num_ships):
             col = int(input("Enter the column letter (A-J): ").upper()) - ord('A')
             for row in range(opponent_board.size):
                 if opponent_board.grid[row][col] == "S":
-                    opponent_board.grid[row][col] = "X"
+                    opponent_board.grid[row][col] = "\033[31mX\033[0m"
                     opponent_board.hits.append((row, col))
                     print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
                 else:

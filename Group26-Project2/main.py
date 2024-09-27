@@ -1,3 +1,4 @@
+
 # Import necessary modules, classes, functions
 import Battleship
 from Battleship import Board
@@ -41,16 +42,16 @@ def main():
 
         setup_ships(player1, num_ships)
         print("All of Player 1's ships are placed!")
-        time.sleep(5)
+        time.sleep(2)
         clear_screen()
 
         print("Please switch players!")
-        time.sleep(5)
+        time.sleep(2)
         clear_screen()
 
         setup_ships(player2, num_ships)
         print("All of Player 2's ships are placed!")
-        time.sleep(5)
+        time.sleep(2)
         clear_screen()
 
         print("The game is starting!")
