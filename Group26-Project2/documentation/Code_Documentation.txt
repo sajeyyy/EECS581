@@ -1,0 +1,51 @@
+Python Battleship Game - Code Documentation 
+The Battleship game implemented in Python. This describes the functionality of each class, method, and function used in the code. The game includes AI and Player-controlled modes, a special AC130 score streak, and game setup for ship placement and attack mechanics.
+
+Class: AI
+The AI class controls the computer opponent's behavior in the game. It randomly places ships on its board and makes strategic guesses during its turn.
+Methods:
+	1. __init__(self, name, board): Initializes the AI object with a name and assigns a board object to the AI.
+	2. place_ships_randomly(self, ship_sizes): Places ships of varying sizes randomly on the AI's board, ensuring valid positions.
+	3. aiRandomGuess(self, player_board): Makes a random guess on the player's board. It checks if the target is valid and whether a ship is hit or missed.
+	4. medModeAI(self, player_board): Implements a medium difficulty AI that switches between "hunt" and "target" modes. It prioritizes nearby cells when a ship is hit.
+	5. hardModeAI(self, player_board): Implements a hard difficulty AI that directly targets visible ship segments on the player's board.
+	6. process_shot(self, player_board, row, col): Processes the AI's shot at the specified coordinates. Marks hits and checks if a ship is sunk.
+	7. populate_target_list(self, row, col): Populates a list of directions (up, down, left, right) for targeting nearby cells after a hit.
+	8. get_next_target(self, row, col, direction): Retrieves the next target coordinates based on the given direction.
+
+Class: Player
+The Player class manages human player actions, such as taking turns, firing shots at the opponent's board, and activating the AC130 score streak when available.
+Methods:
+	1. __init__(self, name, board): Initializes the player with a name and a board object.
+	2. take_turn(self, opponent): Manages the player's turn by displaying boards and accepting input for firing at the opponent's ships. Also handles the activation of the AC130 score streak.
+	3. display_hits(self): Displays how many times each of the player's ships has been hit.
+	4. activate_ac130(self, opponent_board): Allows the player to target an entire row or column on the opponent's board when the AC130 score streak is activated.
+
+Class: Board
+The Board class represents the game board for each player. It stores the grid, ships, hits, and misses, and tracks ship positions.
+Methods:
+	1. __init__(self, size=10): Initializes a game board of the specified size (default is 10x10). The board contains a grid, ships, hits, misses, and a hit count.
+	2. display(self, show_ships=True): Displays the board's current state, showing hits and misses. Optionally hides ships if show_ships is False.
+	3. place_ship(self, ship): Places a ship object on the board by marking the corresponding grid cells.
+	4. is_valid_position(self, ship): Checks if the ship's position is valid, ensuring it is within bounds and not overlapping with other ships.
+	5. receive_fire(self, x, y): Handles a shot at the specified coordinates, marking hits and misses, and checking if a ship is sunk.
+	6. all_ships_sunk(self): Checks if all the ships on the board have been sunk.
+	Class: Ship
+
+The Ship class defines the properties and behavior of a ship, including its size, orientation, and position on the board.
+Methods:
+	1. __init__(self, size, orientation, start_x, start_y): Initializes a ship with its size, orientation (horizontal or vertical), and starting coordinates.
+	2. generate_coordinates(self): Generates the ship's coordinates on the board based on its size and orientation.
+	3. is_sunk(self, hits): Checks if the ship is sunk by comparing its coordinates with the list of hits.
+
+Utility Functions
+	1. input_to_index(input_str): Converts user input (e.g., A5) into grid coordinates (row, column).
+	2. validate_orientation(): Ensures the user provides a valid ship orientation (H for horizontal, V for vertical).
+	3. validate_position(): Validates the input for ship placement, ensuring correct format (e.g., A1).
+	4. getGamemode(): Prompts the user to select the game mode (1-Player vs. AI or 2-Player pass-and-play).
+	5. getDifficulty(): Prompts the user to select the AI's difficulty level.
+	6. validate_numships(): Validates the number of ships each player can have, ensuring it's between 1 and 5.
+	7. setup_ships(player, num_ships): Sets up ships on the player's board by asking for orientation and position input.
+	8. play_game(player1, player2, is_ai=False, aiDifficulty=1): Main game loop where both players take turns firing shots. Includes AI difficulty options.
+	9. clear_screen(): Clears the terminal screen for a cleaner game experience.
+	10. plane_animation_with_payload(): Animates a plane dropping payload during the AC130 sequence.
