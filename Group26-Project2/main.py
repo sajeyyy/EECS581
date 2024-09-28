@@ -1,8 +1,7 @@
-
 # Import necessary modules, classes, functions
 import Battleship
 from Battleship import Board
-from Battleship import Player, AI  # Import AI class here
+from Battleship import Player, AI
 from Battleship import setup_ships
 from Battleship import play_game
 from Battleship import clear_screen

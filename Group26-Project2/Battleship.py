@@ -11,7 +11,7 @@ Collaborators: Saje Cowell
                Charlie Gillund
 
 Assignment: EECS 581 Project 1; Battleship
-Program: Battleship.pyBattleship file to identify different classes/objects of the game
+Program: Battleship.py, Battleship file to identify different classes/objects of the game
 Inputs: Players.py, Board.py, Ship.py, User Input
 Outputs: Battleship Game, interactive and dependent on User Input
 Other Sources: ChatGPT
@@ -19,7 +19,7 @@ Date: 09/04/2024
 last modified: 09/09/2024
 """
 
-# Import libraries for later use
+# Import libraries
 import random
 import os
 import time
@@ -55,12 +55,11 @@ class AI:
                 randRow = random.randint(0, player_board.size - 1)
                 randCol = random.randint(0, player_board.size - 1)
 
-            # Ensure the AI hasn't guessed this spot before on the player's board
-            if player_board.grid[randRow][randCol] not in ("\033[31mX\033[0m", "O"):
-                break
-
-            print(f"AI randomly shoots at ({randRow + 1}, {chr(randCol + 65)})")
-            hit_result, ship_sunk = self.process_shot(player_board, randRow, randCol)
+                # Check if the cell hasn't already been targeted
+                if player_board.grid[randRow][randCol] not in ("X", "O", "\033[31mX\033[0m"):
+                    # Process the shot
+                    hit_result, ship_sunk = self.process_shot(player_board, randRow, randCol)
+                    break  # Exit the loop once a valid shot is made
 
             if hit_result == "Hit!":
                 print(f"AI hit at ({randRow + 1}, {chr(randCol + 65)})! Switching to target mode.")
@@ -73,37 +72,32 @@ class AI:
 
         elif self.target_mode:
             print("AI is in target mode...")
+
             while self.direction_queue:
-                # Get the next direction from the queue
+                # Get the next direction from the queue without removing it
                 direction = self.direction_queue[0]
                 targetRow, targetCol = self.get_next_target(self.last_hit[0], self.last_hit[1], direction)
 
                 print(f"AI targets direction {direction} resulting in cell ({targetRow + 1}, {chr(targetCol + 65)})")
 
-                # Check if this cell is valid
+                # Check if this cell is valid and hasn't been hit already
                 if (0 <= targetRow < player_board.size and 0 <= targetCol < player_board.size
-                    and player_board.grid[targetRow][targetCol] not in ("X", "O")):
+                    and player_board.grid[targetRow][targetCol] not in ("X", "O", "\033[31mX\033[0m")):
 
                     hit_result, ship_sunk = self.process_shot(player_board, targetRow, targetCol)
 
                     if hit_result == "Hit!":
                         print(f"AI hit again at ({targetRow + 1}, {chr(targetCol + 65)})! Continuing in this direction.")
-                        self.last_hit = (targetRow, targetCol)
-                        if not ship_sunk:
-                            return hit_result, ship_sunk
-                        else:
-                            print("AI has sunk a ship!")
-                            self.hunt_mode = True
-                            self.target_mode = False
-                            self.direction_queue.clear()
-                            return hit_result, ship_sunk
-
-                    # If it misses, remove the current direction and try the next one
-                    print(f"AI missed at ({targetRow + 1}, {chr(targetCol + 65)}). Trying next direction.")
-                    self.direction_queue.pop(0)  # Remove current direction and try next
+                        self.last_hit = (targetRow, targetCol)  # Update last_hit to continue in this direction
+                        return hit_result, ship_sunk
+                    else:
+                        print(f"AI missed at ({targetRow + 1}, {chr(targetCol + 65)}).")
+                        # Remove the current direction from the queue since it was a miss
+                        self.direction_queue.pop(0)
+                        return hit_result, ship_sunk
 
                 else:
-                    # Invalid cell or already hit/missed; remove the direction and try next
+                    # Invalid cell or already hit/missed; remove the current direction and try next
                     print(f"Invalid target or already hit at ({targetRow + 1}, {chr(targetCol + 65)}). Trying next direction.")
                     self.direction_queue.pop(0)
 
@@ -113,16 +107,40 @@ class AI:
             self.target_mode = False
             return "Miss!", False
 
-#Handles the logic of processing a shot at the given row and col
+    # Function for the hard mode AI
+    def hardModeAI(self, player_board):
+
+        # Scan the player's board to find the first ship segment ("S") that hasn't been hit yet
+        for row in range(player_board.size):
+            for col in range(player_board.size):
+                if player_board.grid[row][col] == "S":
+                    # Always hit the first available ship segment
+                    hit_result, ship_sunk = self.process_shot(player_board, row, col)
+                    print(f"AI fired at ({row + 1}, {chr(col + 65)}) and hit a ship!")
+                    return hit_result, ship_sunk
+
+        # This return statement is just a safeguard; ideally, hard mode should always find a target to hit
+        return "Miss!", False
+
+    # Handles the logic of processing a shot at the given row and col
     def process_shot(self, player_board, row, col):
         ship_sunk = False
+
+        # Check if the cell is a valid target and not already marked
         if player_board.grid[row][col] == "S" or player_board.grid[row][col].isdigit():
+            # If the cell was already hit, ensure we don't count it again
+            if player_board.grid[row][col] == "\033[31mX\033[0m":
+                # This cell has already been hit, return "Hit!" but do not change the grid
+                return "Hit!", False
+
+            player_board.grid[row][col] = "\033[31mX\033[0m"  # Mark as hit
+            player_board.hits.append((row, col))
+
+            # Update the hit count if this coordinate exists
             if (row, col) in player_board.hit_count:
                 player_board.hit_count[(row, col)] += 1
             else:
-                player_board.hit_count[(randRow, randCol)] = 1
-            player_board.grid[randRow][randCol] = "\033[31mX\033[0m"
-            player_board.hits.append((randRow, randCol))
+                player_board.hit_count[(row, col)] = 1
 
             # Check if a ship was hit and whether it is sunk
             for ship in player_board.ships:
@@ -132,10 +150,14 @@ class AI:
                         print(f"Ship sunk at ({row + 1}, {chr(col + 65)})!")
 
             return "Hit!", ship_sunk
+
         else:
-            player_board.grid[row][col] = "O"
+            # Only mark as a miss if it's not already marked as hit
+            if player_board.grid[row][col] != "\033[31mX\033[0m":
+                player_board.grid[row][col] = "O"
             player_board.misses.append((row, col))
             return "Miss!", ship_sunk
+
 
 
     def populate_target_list(self, row, col):
