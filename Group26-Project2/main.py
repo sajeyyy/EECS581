@@ -38,10 +38,10 @@ def main():
     # Initialize 2 players for a 2-player game
     elif gameMode == 2:
         num_ships = validate_numships()  # Validates the number of ships the players selected
-        player1 = Player("Player 1", board1)
-        player2 = Player("Player 2", board2)
+        player1 = Player("Player 1", board1) # makes p1 obj
+        player2 = Player("Player 2", board2) # makes p2 obj
 
-        setup_ships(player1, num_ships)
+        setup_ships(player1, num_ships) #Starts Ship placement sequence
         print("All of Player 1's ships are placed!")
         time.sleep(2)
         clear_screen()

@@ -19,6 +19,24 @@ Date: 09/04/2024
 last modified: 09/09/2024
 """
 
+"""
+
+Editors: Saje Cowell
+               Spencer Sliffe
+               Jeff Burns
+               Charlie Gillund
+
+Assignment: EECS 581 Project 2;  Better Battleship
+Changes: Added AI mode with Easy Medium and Hard difficulty, Added Ac 130 Special Shot, added color to the board 
+Inputs: Players.py, Board.py, Ship.py, User Input
+Outputs: Battleship Game, interactive and dependent on User Input
+Other Sources: ChatGPT
+Creation Date: 09/04/2024
+last modified: 09/29/2024
+"""
+
+
+
 # Import libraries
 import random
 import os
@@ -35,14 +53,17 @@ class AI:
         self.last_hit = None  # Track the last hit cell
         self.direction_queue = []  # Queue to handle directions
 
+
+    # This function finds random places in the map that can fit the ships and places them
     def place_ships_randomly(self, ship_sizes):
         for size in ship_sizes:
             while True:
-                start_x = random.randint(0, self.board.size - 1)
-                start_y = random.randint(0, self.board.size - 1)
-                orientation = 'H' if random.randint(0, 1) == 0 else 'V'
+                start_x = random.randint(0, self.board.size - 1) # random x coor
+                start_y = random.randint(0, self.board.size - 1) # y coor
+                orientation = 'H' if random.randint(0, 1) == 0 else 'V' # random oreintation
                 ship = Ship(size, orientation, start_x, start_y)
 
+                ##validates and places ship
                 if self.board.is_valid_position(ship):
                     self.board.place_ship(ship)
                     break
@@ -60,7 +81,8 @@ class AI:
                     # Process the shot
                     hit_result, ship_sunk = self.process_shot(player_board, randRow, randCol)
                     break  # Exit the loop once a valid shot is made
-
+                
+            # This checks if the action was a hit then switchs modes to starts searching off the hit 
             if hit_result == "Hit!":
                 print(f"AI hit at ({randRow + 1}, {chr(randCol + 65)})! Switching to target mode.")
                 self.hunt_mode = False
@@ -254,7 +276,7 @@ class Player:
     def activate_ac130(self, opponent_board):
         # Ask the player if they want to hit a row or column
         choice = input("AC130 activated! Do you want to target a row or a column? (R/C): ").upper()
-
+        #will attack Row of Choice
         if choice == 'R':  # Target row
             row = int(input("Enter the row number (1-10): ")) - 1
             # Show AC-130 inbound message after the player makes a choice
@@ -269,7 +291,9 @@ class Player:
                     print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
                 else:
                     opponent_board.grid[row][col] = "O"
+            print("AC130 Strike Completed!")
 
+        # Will Attack Column of Choice
         elif choice == 'C':  # Target column
             col = ord(input("Enter the column letter (A-J): ").upper()) - ord('A')
             # Show AC-130 inbound message after the player makes a choice
@@ -284,8 +308,15 @@ class Player:
                     print(f"Hit at {chr(col + ord('A'))}{row + 1}!")
                 else:
                     opponent_board.grid[row][col] = "O"
+            print("AC130 Strike Completed!")
+        else:
+            print("Invalid Input")
+            self.activate_ac130(opponent_board) # reursive call to redo prompt
 
-        print("AC130 Strike Completed!")
+
+        
+
+        
 
 # Initializes a Board class/object
 # Each Board has a grid, ships, hits, misses, and hit count
@@ -527,6 +558,7 @@ def setup_ships(player, num_ships):
 
         print("AC130 strike completed!")
 
+# This prints the Animation of the special shot 
 def plane_animation_with_payload():
     frames = [
         [
