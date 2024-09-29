@@ -47,7 +47,7 @@ class AI:
                     self.board.place_ship(ship)
                     break
 
-    # Function for the medium mode AI
+    # Function for the medium mode AI with enhanced backtracking and reverting logic
     def medModeAI(self, player_board):
         if self.hunt_mode:
             print("AI is in hunt mode...")
@@ -65,7 +65,8 @@ class AI:
                 print(f"AI hit at ({randRow + 1}, {chr(randCol + 65)})! Switching to target mode.")
                 self.hunt_mode = False
                 self.target_mode = True
-                self.last_hit = (randRow, randCol)
+                self.first_hit = (randRow, randCol)  # Save the first hit coordinate
+                self.last_hit = (randRow, randCol)   # Track the last hit
                 self.direction_queue = self.populate_target_list(randRow, randCol)
 
             return hit_result, ship_sunk
@@ -74,7 +75,7 @@ class AI:
             print("AI is in target mode...")
 
             while self.direction_queue:
-                # Get the next direction from the queue without removing it
+                # Get the current direction from the queue without removing it
                 direction = self.direction_queue[0]
                 targetRow, targetCol = self.get_next_target(self.last_hit[0], self.last_hit[1], direction)
 
@@ -91,9 +92,10 @@ class AI:
                         self.last_hit = (targetRow, targetCol)  # Update last_hit to continue in this direction
                         return hit_result, ship_sunk
                     else:
-                        print(f"AI missed at ({targetRow + 1}, {chr(targetCol + 65)}).")
-                        # Remove the current direction from the queue since it was a miss
-                        self.direction_queue.pop(0)
+                        print(f"AI missed at ({targetRow + 1}, {chr(targetCol + 65)}). Reverting to first hit and trying opposite direction.")
+                        # Missed in this direction, so we need to revert back to the first hit
+                        self.last_hit = self.first_hit  # Revert to the first hit position
+                        self.direction_queue.pop(0)  # Remove the current direction
                         return hit_result, ship_sunk
 
                 else:
@@ -101,11 +103,13 @@ class AI:
                     print(f"Invalid target or already hit at ({targetRow + 1}, {chr(targetCol + 65)}). Trying next direction.")
                     self.direction_queue.pop(0)
 
-            # If all directions are exhausted, go back to hunt mode
+            # If all directions are exhausted, return to hunt mode
             print("AI has exhausted all target directions. Returning to hunt mode.")
             self.hunt_mode = True
             self.target_mode = False
             return "Miss!", False
+
+
 
     # Function for the hard mode AI
     def hardModeAI(self, player_board):
