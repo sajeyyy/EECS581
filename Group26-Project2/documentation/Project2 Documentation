@@ -1,0 +1,17 @@
+Additions
+
+AI:
+Added Addition gamemode to battleship allowing the player to play against the computer instead of another player.
+All gamemodes will place ships randomly
+    Easy: Will generate random coordinates everyturn and then see if they are valid guesses. Even if a ship is hit the next turn will be randomly generated
+    Medium: Same as the Easy Gamemode except when a ship is hit it will guess the spaces around the hit until the ship is sank
+    Hard: The ai will scan the board then only guess the spaces where there is ships
+
+
+AC 130(Special Shot):
+    This is a power up during gameplay which is activated when you hit three consecutive hits in a row. After unlocking it will prompt you to you the power up then prompt for which row or column you want to hit. After the prompt is complete there will be a short animation then the entire row/column  will be targeted for hits. After the use, it deactives and waits for 3 more consecutive hits.
+
+Color:
+    Added Color to the Water ~ and the X markers in the game. 
+    This uses Ascii codes /033 to escape then uses the color code 31m for red and 34m for blue and 0m to reset the color for the rest of the out put
+    EX "\033[31mX\033[0m" will turn X red 
