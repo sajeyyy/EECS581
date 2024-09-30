@@ -68,6 +68,10 @@ class AI:
                     self.board.place_ship(ship)
                     break
 
+    def easyModeAI(self, player_board):
+        hit_result, ship_sunk = self.process_shot(player_board, random.randint(0, self.board.size - 1), random.randint(0, self.board.size - 1))
+                    
+        return hit_result, ship_sunk
     # Function for the medium mode AI with enhanced backtracking and reverting logic
     def medModeAI(self, player_board):
         if self.hunt_mode:
