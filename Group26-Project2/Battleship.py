@@ -68,37 +68,10 @@ class AI:
                     self.board.place_ship(ship)
                     break
 
-
     def easyModeAI(self, player_board):
-        while True:
-            randRow = random.randint(0, player_board.size - 1)
-            randCol = random.randint(0, player_board.size - 1)
-
-            # Ensure the AI hasn't guessed this spot before on the player's board
-            if player_board.grid[randRow][randCol] not in ("X", "O","\033[31mX\033[0m"):
-                break
-
-        ship_sunk = False
-        if player_board.grid[randRow][randCol] == "S" or player_board.grid[randRow][randCol].isdigit():
-            if (randRow, randCol) in player_board.hit_count:
-                player_board.hit_count[(randRow, randCol)] += 1
-            else:
-                player_board.hit_count[(randRow, randCol)] = 1
-            player_board.grid[randRow][randCol] = "\033[31mX\033[0m"
-            player_board.hits.append((randRow, randCol))
-
-            # Check if a ship was hit and whether it is sunk
-            for ship in player_board.ships:
-                if (randRow, randCol) in ship.coordinates:
-                    if ship.is_sunk(player_board.hits):
-                        ship_sunk = True
-
-            return "Hit!", ship_sunk
-        else:
-            player_board.grid[randRow][randCol] = "O"
-            player_board.misses.append((randRow, randCol))
-            return "Miss!", ship_sunk
-        
+        hit_result, ship_sunk = self.process_shot(player_board, random.randint(0, self.board.size - 1), random.randint(0, self.board.size - 1))
+                    
+        return hit_result, ship_sunk
     # Function for the medium mode AI with enhanced backtracking and reverting logic
     def medModeAI(self, player_board):
         if self.hunt_mode:
